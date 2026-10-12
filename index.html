@@ -1,0 +1,412 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ECC Cybersecurity Club's Password Game</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #f7f9ff;
+    color: #0c1630;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.wrap {
+    max-width: 540px;
+    margin: 0 auto;
+    padding: 45px 20px 90px;
+}
+
+h1 {
+    text-align: center;
+    font-size: clamp(25px, 5vw, 34px);
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin: 0 0 36px;
+}
+
+label {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+textarea {
+    display: block;
+    width: 100%;
+    min-height: 68px;
+    resize: vertical;
+    border: 1px solid #a7a7a7;
+    border-radius: 10px;
+    background: #fff;
+    font: 22px Arial;
+    padding: 16px;
+    outline: none;
+    overflow-wrap: anywhere;
+}
+
+textarea:focus {
+    border-color: #0650d9;
+    box-shadow: 0 0 0 3px #bdefff;
+}
+
+.note {
+    font-size: 12px;
+    color: #5d6680;
+    margin: 9px 0 16px;
+}
+
+.rule {
+    border: 1.5px solid #163568;
+    border-radius: 9px;
+    overflow: hidden;
+    margin: 12px 0;
+    background: white;
+    box-shadow: 4px 4px 0 #063db6;
+}
+
+.rule header {
+    padding: 11px 14px;
+    font-size: 14px;
+    font-weight: 700;
+    background: #edf4ff;
+    border-bottom: 1px solid #163568;
+}
+
+.rule p {
+    padding: 15px;
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.rule.pass header {
+    background: #d9f7fa;
+}
+
+.rule.fail header {
+    background: #ffe4e4;
+}
+
+.flag {
+    width: 45px;
+    height: auto;
+    vertical-align: middle;
+    margin: 0 5px;
+    border: 1px solid #ddd;
+}
+
+.footer {
+    font-size: 13px;
+    color: #63718b;
+    margin-top: 30px;
+    text-align: center;
+}
+
+.win {
+    border: 2px solid #063db6;
+    border-radius: 10px;
+    padding: 22px;
+    background: #e0faff;
+    box-shadow: 4px 4px 0 #063db6;
+    margin-top: 24px;
+    text-align: center;
+}
+
+.win[hidden] {
+    display: none;
+}
+
+.win h2 {
+    margin: 0 0 8px;
+    font: 700 26px Arial;
+}
+
+.win p {
+    line-height: 1.5;
+}
+
+.btn {
+    background: white;
+    border: 2px solid #063db6;
+    box-shadow: 3px 3px #063db6;
+    padding: 10px 17px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.btn:hover {
+    transform: translate(1px, 1px);
+    box-shadow: 2px 2px #063db6;
+}
+
+#rules {
+    display: flex;
+    flex-direction: column-reverse;
+}
+
+.club-logo {
+    display: block;
+    width: 150px;
+    height: 150px;
+    object-fit: contain;
+    margin: 0 auto 18px;
+    border-radius: 50%;
+}
+
+.blue {
+    color: #064bdf;
+}
+
+.actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.counter {
+    font-size: 13px;
+    color: #53617e;
+}
+
+@media (max-width: 600px) {
+    .wrap {
+        padding-top: 25px;
+    }
+
+    h1 {
+        margin-bottom: 32px;
+    }
+}
+</style>
+</head>
+
+<body>
+<main class="wrap">
+
+    <img
+        class="club-logo"
+        src="logo.png"
+        alt="ECC Cybersecurity Club logo"
+    >
+
+    <h1>
+        ECC Cybersecurity Club's<br>
+        <span class="blue">Password Game</span>
+    </h1>
+
+    <div class="actions">
+        <span class="counter" id="progress">Rule 1 of 10</span>
+        <button class="btn" id="restart" type="button">
+            New round ↻
+        </button>
+    </div>
+
+    <label for="password">Please choose a password</label>
+
+    <textarea
+        id="password"
+        aria-label="Practice password"
+        spellcheck="false"
+        autocomplete="off"
+    ></textarea>
+
+    <p class="note">
+        Use a made-up password, not one you actually use.
+        Rules appear as you play.
+    </p>
+
+    <section id="rules" aria-live="polite"></section>
+
+    <section id="win" class="win" hidden>
+        <h2>Nice work! 🔒</h2>
+
+        <p>
+            You completed the cybersecurity password challenge!
+            Protect your accounts with unique passwords and
+            multi-factor authentication.
+        </p>
+
+        <p>
+            <strong>
+                Interested in cybersecurity?
+                Join the ECC Cybersecurity Club!
+            </strong>
+        </p>
+
+        <button class="btn" id="again" type="button">
+            Play again with new rules
+        </button>
+    </section>
+
+    <p class="footer">
+        ECC Cybersecurity Club · Health Fair
+    </p>
+
+</main>
+
+<script>
+// Calculate the sum of all digits in the password.
+const digitSum = p =>
+    (p.match(/[0-9]/g) || [])
+        .reduce((sum, digit) => sum + Number(digit), 0);
+
+// Get the current hour in 24-hour military time.
+// Examples: 9 AM = 09, 2 PM = 14, 8 PM = 20.
+const getHourOfDay = () => {
+    return String(new Date().getHours()).padStart(2, '0');
+};
+
+// Eight randomized rules.
+const rulePool = [
+    [
+        'Your password must include uppercase and lowercase letters.',
+        p => /[A-Z]/.test(p) && /[a-z]/.test(p)
+    ],
+
+    [
+        'Your password must include at least three numbers.',
+        p => (p.match(/[0-9]/g) || []).length >= 3
+    ],
+
+    [
+        'Your password must include two different special characters.',
+        p => new Set(p.match(/[^a-zA-Z0-9\s]/g) || []).size >= 2
+    ],
+
+    [
+        'The numbers in your password must add up to exactly <strong>20</strong>.',
+        p => digitSum(p) === 20
+    ],
+
+    [
+        'Your password must contain at least <strong>20 characters</strong>.',
+        p => [...p].length >= 20
+    ],
+
+    [
+        'Cybersecurity challenge: include the word <strong>phishing</strong>.',
+        p => /phishing/i.test(p)
+    ],
+
+    [
+        'Add a heart <strong>♥</strong> somewhere in your password.',
+        p => p.includes('♥')
+    ],
+
+    [
+        '<strong>Guess the flag:</strong> <img class="flag" src="https://flagcdn.com/w80/eg.png" alt="Country flag"> This country is famous for the pyramids of Giza. Include its name in English.',
+        p => /egypt/i.test(p)
+    ]
+];
+
+let rules = [];
+let unlocked = 1;
+
+const input = document.getElementById('password');
+const list = document.getElementById('rules');
+const win = document.getElementById('win');
+const progress = document.getElementById('progress');
+
+function newRound() {
+    const hourOfDay = getHourOfDay();
+
+    // The hour is captured at the start of the round,
+    // so the requirement does not change mid-game.
+    const hourRule = [
+        '<strong>Hour of day:</strong> Include the current hour in <strong>24-hour military time</strong> using two digits. For example, 2 PM = 14 and 9 AM = 09.',
+        p => p.includes(hourOfDay)
+    ];
+
+    // Shuffle the eight rules and the hour rule.
+    const shuffled = [...rulePool, hourRule];
+
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    // One starting rule + nine shuffled rules = 10.
+    rules = [
+        [
+            'Your password must be at least 10 characters long.',
+            p => [...p].length >= 10
+        ],
+        ...shuffled
+    ];
+
+    unlocked = 1;
+    input.value = '';
+    win.hidden = true;
+
+    render();
+    input.focus();
+}
+
+function render() {
+    const p = input.value;
+
+    // Unlock the next rule when all visible rules pass.
+    while (
+        unlocked < rules.length &&
+        rules.slice(0, unlocked).every(r => r[1](p))
+    ) {
+        unlocked++;
+    }
+
+    // Display unlocked rules, including flag images.
+    list.replaceChildren(
+        ...rules.slice(0, unlocked).map((r, i) => {
+            const pass = r[1](p);
+
+            const box = document.createElement('article');
+
+            box.className = 'rule ' + (pass ? 'pass' : 'fail');
+
+            box.innerHTML =
+                '<header>Rule ' +
+                (i + 1) +
+                ' ' +
+                (pass ? '✓' : '✕') +
+                '</header><p>' +
+                r[0] +
+                '</p>';
+
+            return box;
+        })
+    );
+
+    progress.textContent =
+        'Rule ' + unlocked + ' of ' + rules.length;
+
+    // Show the victory message when all 10 rules pass.
+    win.hidden = !(
+        unlocked === rules.length &&
+        rules.every(r => r[1](p))
+    );
+}
+
+input.addEventListener('input', render);
+
+document.getElementById('again')
+    .addEventListener('click', newRound);
+
+document.getElementById('restart')
+    .addEventListener('click', newRound);
+
+newRound();
+</script>
+
+</body>
+</html>
