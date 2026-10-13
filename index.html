@@ -285,7 +285,7 @@ const rulePool = [
     ],
 
     [
-        'The numbers in your password must add up to exactly <strong>20</strong>.',
+        'The numbers in your password must add up to exactly <strong>20</strong> using single digits only.',
         p => digitSum(p) === 20
     ],
 
@@ -319,17 +319,8 @@ const win = document.getElementById('win');
 const progress = document.getElementById('progress');
 
 function newRound() {
-    const hourOfDay = getHourOfDay();
-
-    // The hour is captured at the start of the round,
-    // so the requirement does not change mid-game.
-    const hourRule = [
-        '<strong>Hour of day:</strong> Include the current hour in <strong>24-hour military time</strong> using two digits. For example, 2 PM = 14 and 9 AM = 09.',
-        p => p.includes(hourOfDay)
-    ];
-
-    // Shuffle the eight rules and the hour rule.
-    const shuffled = [...rulePool, hourRule];
+    // Shuffle the eight randomized rules.
+    const shuffled = [...rulePool];
 
     for (let i = shuffled.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -337,7 +328,7 @@ function newRound() {
         [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
 
-    // One starting rule + nine shuffled rules = 10.
+    // One starting rule + eight shuffled rules = 9.
     rules = [
         [
             'Your password must be at least 10 characters long.',
